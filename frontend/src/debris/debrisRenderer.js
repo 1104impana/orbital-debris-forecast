@@ -1,38 +1,56 @@
 import * as THREE from "three";
+import { getXYZ } from "./orbit";
 
-export function createDebris(scene, count = 1932) {
+export function createDebris(scene, debris) {
 
     const positions = [];
 
-    for (let i = 0; i < count; i++) {
+    for (const object of debris) {
 
-        const r = 6 + Math.random() * 4;
+        const xyz = getXYZ(object);
 
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
+        if (!xyz)
+            continue;
 
         positions.push(
-            r * Math.sin(phi) * Math.cos(theta),
-            r * Math.cos(phi),
-            r * Math.sin(phi) * Math.sin(theta)
+            xyz.x,
+            xyz.y,
+            xyz.z
         );
+
     }
+
+    console.log("Rendered:", positions.length / 3);
 
     const geometry = new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
-        new THREE.Float32BufferAttribute(positions, 3)
+        new THREE.Float32BufferAttribute(
+            positions,
+            3
+        )
     );
 
     const material = new THREE.PointsMaterial({
-        color: 0xff4444,
-        size: 0.03
+
+        color: 0xff3333,
+
+        size: 0.02,
+
+        transparent: true,
+
+        opacity: 0.8
+
     });
 
-    const points = new THREE.Points(geometry, material);
+    const points = new THREE.Points(
+        geometry,
+        material
+    );
 
     scene.add(points);
 
     return points;
+
 }
