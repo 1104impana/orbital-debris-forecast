@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.celestrak import fetch_live_debris
+from services.spacetrack import fetch_live_debris
 
 app = FastAPI()
 

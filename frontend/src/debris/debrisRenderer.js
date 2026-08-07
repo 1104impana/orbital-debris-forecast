@@ -6,6 +6,10 @@ export function createDebris(scene, debris) {
     const positions = [];
 
     for (const object of debris) {
+         // Temporary filter (optional)
+    if (Number(object.APOAPSIS) > 3000) {
+        continue;
+    }
 
         const xyz = getXYZ(object);
 
@@ -54,3 +58,4 @@ export function createDebris(scene, debris) {
     return points;
 
 }
+

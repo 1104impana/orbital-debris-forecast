@@ -39,7 +39,7 @@ async function loadDebris() {
     document.getElementById("timestamp").innerHTML = `
         <b>LIVE ORBITAL DEBRIS</b><br><br>
 
-        Source : CelesTrak<br>
+        Source : SPACE-TRACK<br>
 
         Objects : ${data.count}<br>
 
