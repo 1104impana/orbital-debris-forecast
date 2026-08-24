@@ -75,7 +75,7 @@ export function createDebris(scene, debris) {
     return points;
 }
 
-export function createPredictedDebris(scene, count) {
+export function createPredictedDebris(scene, predictedTotal, liveCount) {
 
     const positions = [];
 
@@ -83,23 +83,35 @@ export function createPredictedDebris(scene, count) {
     const MIN_RADIUS = 1 + (160 / 6371);
     const MAX_RADIUS = 1 + (1000 / 6371);
 
-    // Number of debris points to display
-    const debrisCount = Math.round(count);
+    // Predicted_Debris is assumed to be TOTAL population.
+    // Therefore only render the additional debris.
+    const additionalDebris = Math.max(
+        0,
+        Math.round(predictedTotal - liveCount)
+    );
 
-    for (let i = 0; i < debrisCount; i++) {
+    for (let i = 0; i < additionalDebris; i++) {
 
-        // Random spherical position
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
 
-        // Random orbital altitude
         const radius =
             MIN_RADIUS +
             Math.random() * (MAX_RADIUS - MIN_RADIUS);
 
-        const x = radius * Math.sin(phi) * Math.cos(theta);
-        const y = radius * Math.sin(phi) * Math.sin(theta);
-        const z = radius * Math.cos(phi);
+        const x =
+            radius *
+            Math.sin(phi) *
+            Math.cos(theta);
+
+        const y =
+            radius *
+            Math.sin(phi) *
+            Math.sin(theta);
+
+        const z =
+            radius *
+            Math.cos(phi);
 
         positions.push(x, y, z);
     }
@@ -115,7 +127,7 @@ export function createPredictedDebris(scene, count) {
     );
 
     const material = new THREE.PointsMaterial({
-        color: 0x00FF66,
+        color: 0x00ff66,
         size: 0.012,
         transparent: true,
         opacity: 0.8,
@@ -130,7 +142,18 @@ export function createPredictedDebris(scene, count) {
     scene.add(points);
 
     console.log(
-        `Predicted debris rendered: ${debrisCount}`
+        "Predicted total:",
+        predictedTotal
+    );
+
+    console.log(
+        "Live debris:",
+        liveCount
+    );
+
+    console.log(
+        "Additional predicted debris:",
+        additionalDebris
     );
 
     return points;

@@ -19,6 +19,7 @@ animate();
 
 let debrisPoints = null;
 let predictedDebrisPoints = null;
+let liveDebrisCount = 0;
 
 async function loadDebris() {
 
@@ -26,6 +27,7 @@ async function loadDebris() {
     const data = await getLiveDebris();
 
     console.log("Fetched Objects:", data.count);
+    liveDebrisCount = data.count;
 
     // Remove old debris cloud
     if (debrisPoints) {
@@ -53,6 +55,7 @@ async function loadDebris() {
 
         Refresh : Every 1 Hour
     `;
+    
 }
 
 async function loadPredictedDebris(year) {
@@ -95,7 +98,8 @@ async function loadPredictedDebris(year) {
         predictedDebrisPoints =
             createPredictedDebris(
                 scene,
-                data.predicted
+                data.predicted,
+                liveDebrisCount
             );
 
         const predictionDisplay =
