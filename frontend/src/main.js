@@ -56,3 +56,30 @@ await loadDebris();
 
 // Refresh every hour
 setInterval(loadDebris, 60 * 60 * 1000);
+
+// Initial load
+await loadDebris();
+
+// Refresh every hour
+setInterval(loadDebris, 60 * 60 * 1000);
+
+
+// FIX: resize Three.js when browser window changes
+window.addEventListener("resize", () => {
+    const camera = scene.userData.camera;
+    const renderer = scene.userData.renderer;
+
+    if (camera && renderer) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+        renderer.setPixelRatio(
+            Math.min(window.devicePixelRatio, 2)
+        );
+    }
+});

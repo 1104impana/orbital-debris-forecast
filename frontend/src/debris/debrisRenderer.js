@@ -5,26 +5,47 @@ export function createDebris(scene, debris) {
 
     const positions = [];
 
+    let skipped = 0;
+
+    // Earth radius = 1 in our Three.js scene
+    // Keep debris approximately 160–1000 km above Earth.
+    const MIN_RADIUS = 1 + (160 / 6371);
+    const MAX_RADIUS = 1 + (1000 / 6371);
+
     for (const object of debris) {
-         // Temporary filter (optional)
-    if (Number(object.APOAPSIS) > 3000) {
-        continue;
-    }
 
         const xyz = getXYZ(object);
 
-        if (!xyz)
+        if (!xyz) {
+            skipped++;
             continue;
+        }
+
+        // Calculate distance from Earth's center
+        const radius = Math.sqrt(
+            xyz.x * xyz.x +
+            xyz.y * xyz.y +
+            xyz.z * xyz.z
+        );
+
+        // Keep only near-Earth / LEO debris
+        if (radius < MIN_RADIUS || radius > MAX_RADIUS) {
+            skipped++;
+            continue;
+        }
 
         positions.push(
             xyz.x,
             xyz.y,
             xyz.z
         );
-
     }
 
-    console.log("Rendered:", positions.length / 3);
+    console.log("==============================");
+    console.log("Total objects:", debris.length);
+    console.log("Rendered LEO debris:", positions.length / 3);
+    console.log("Skipped:", skipped);
+    console.log("==============================");
 
     const geometry = new THREE.BufferGeometry();
 
@@ -37,15 +58,11 @@ export function createDebris(scene, debris) {
     );
 
     const material = new THREE.PointsMaterial({
-
         color: 0xff3333,
-
-        size: 0.02,
-
+        size: 0.015,
         transparent: true,
-
-        opacity: 0.8
-
+        opacity: 0.85,
+        sizeAttenuation: true
     });
 
     const points = new THREE.Points(
@@ -56,6 +73,4 @@ export function createDebris(scene, debris) {
     scene.add(points);
 
     return points;
-
 }
-

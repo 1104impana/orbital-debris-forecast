@@ -1,38 +1,76 @@
 import * as satellite from "satellite.js";
 
 export function getXYZ(object) {
-
     try {
+        // Check object exists
+        if (!object) {
+            console.warn("Invalid debris object");
+            return null;
+        }
 
+        // Convert TLE/JSON data to satellite record
         const satrec = satellite.json2satrec(object);
 
-        console.log(object.OBJECT_NAME, satrec.error);
+        if (!satrec) {
+            console.warn(
+                "Could not create satrec:",
+                object.OBJECT_NAME || "Unknown"
+            );
+            return null;
+        }
 
+        // Propagate satellite position
         const pv = satellite.propagate(
             satrec,
             new Date()
         );
 
-        if (!pv.position) {
-            console.log("No position:", object.OBJECT_NAME);
+        // IMPORTANT:
+        // pv itself can be null
+        if (!pv || !pv.position) {
+            console.warn(
+                "No valid position:",
+                object.OBJECT_NAME || "Unknown"
+            );
             return null;
         }
 
+        const position = pv.position;
+
+        // Check coordinates are valid numbers
+        if (
+            !Number.isFinite(position.x) ||
+            !Number.isFinite(position.y) ||
+            !Number.isFinite(position.z)
+        ) {
+            console.warn(
+                "Invalid coordinates:",
+                object.OBJECT_NAME || "Unknown"
+            );
+            return null;
+        }
+
+        // Earth radius
         const earthRadius = 1;
         const earthRadiusKm = 6371;
+
+        // Convert km → globe radius
         const scale = earthRadius / earthRadiusKm;
 
         return {
-            x: pv.position.x * scale,
-            y: pv.position.z * scale,
-            z: -pv.position.y * scale
+            x: position.x * scale,
+            y: position.z * scale,
+            z: -position.y * scale
         };
 
-    } catch (e) {
+    } catch (error) {
+        console.warn(
+            "ERROR:",
+            object?.OBJECT_NAME || "Unknown object",
+            error
+        );
 
-        console.log("ERROR:", object.OBJECT_NAME, e);
-
+        // Skip invalid debris instead of crashing
         return null;
     }
-
 }

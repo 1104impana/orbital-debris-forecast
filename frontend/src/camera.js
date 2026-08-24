@@ -9,4 +9,10 @@ const camera = new THREE.PerspectiveCamera(
 
 camera.position.z = 3;
 
+// Keep the Earth perfectly round when the viewport changes
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+
 export default camera;
