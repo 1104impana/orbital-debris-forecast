@@ -10,6 +10,7 @@ import {
     createDebris,
     createPredictedDebris
 } from "./debris/debrisRenderer";
+
 import { getLiveDebris } from "./debris/liveDebris";
 
 scene.add(earth);
@@ -19,44 +20,105 @@ animate();
 
 let debrisPoints = null;
 let predictedDebrisPoints = null;
+
+// Current actual LIVE debris count
 let liveDebrisCount = 0;
+
+
+// =====================================================
+// LOAD LIVE DEBRIS
+// =====================================================
 
 async function loadDebris() {
 
-    // Fetch latest data from backend
-    const data = await getLiveDebris();
+    try {
 
-    console.log("Fetched Objects:", data.count);
-    liveDebrisCount = data.count;
+        const data = await getLiveDebris();
 
-    // Remove old debris cloud
-    if (debrisPoints) {
+        console.log("Fetched Objects:", data.count);
 
-        scene.remove(debrisPoints);
+        // Store actual live count
+        liveDebrisCount = Number(data.count);
 
-        debrisPoints.geometry.dispose();
-        debrisPoints.material.dispose();
+
+        // Remove old live debris
+        if (debrisPoints) {
+
+            scene.remove(debrisPoints);
+
+            debrisPoints.geometry.dispose();
+            debrisPoints.material.dispose();
+        }
+
+
+        // Create live debris
+        debrisPoints = createDebris(
+            scene,
+            data.debris
+        );
+
+
+        // Update LIVE panel
+        const timestamp =
+            document.getElementById("timestamp");
+
+        if (timestamp) {
+
+            timestamp.innerHTML = `
+                <b>LIVE ORBITAL DEBRIS</b><br>
+
+                Source : SPACE-TRACK<br>
+
+                Objects : ${liveDebrisCount.toLocaleString()}<br>
+
+                GP Epoch : ${data.epoch}<br>
+
+                Last Fetch :
+                ${new Date(data.last_fetch).toLocaleString()}<br>
+
+                Refresh : Every 1 Hour
+            `;
+        }
+
+
+        // Update prediction display if currently on 2026
+        const predictionDisplay =
+            document.getElementById("predictionDisplay");
+
+        const yearValue =
+            document.getElementById("yearValue");
+
+        if (
+            predictionDisplay &&
+            yearValue &&
+            Number(yearValue.textContent) === 2026
+        ) {
+
+            predictionDisplay.innerHTML = `
+                Live debris:
+                ${liveDebrisCount.toLocaleString()}
+            `;
+        }
+
+
+        console.log(
+            "LIVE debris count:",
+            liveDebrisCount
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Live debris error:",
+            error
+        );
     }
-
-    // Create new debris cloud
-    debrisPoints = createDebris(scene, data.debris);
-
-    // Update status panel
-    document.getElementById("timestamp").innerHTML = `
-        <b>LIVE ORBITAL DEBRIS</b><br>
-
-        Source : SPACE-TRACK<br>
-
-        Objects : ${data.count}<br>
-
-        GP Epoch : ${data.epoch}<br>
-
-       Last Fetch : ${new Date(data.last_fetch).toLocaleString()}<br>
-
-        Refresh : Every 1 Hour
-    `;
-    
 }
+
+
+// =====================================================
+// LOAD FUTURE PREDICTION
+// =====================================================
 
 async function loadPredictedDebris(year) {
 
@@ -66,19 +128,69 @@ async function loadPredictedDebris(year) {
             `http://127.0.0.1:8000/future-debris?year=${year}`
         );
 
+
         if (!response.ok) {
+
             throw new Error(
                 `Prediction API error: ${response.status}`
             );
         }
 
+
         const data = await response.json();
 
+
+        // Convert prediction safely to number
+        const predictedTotal =
+            Math.round(
+                Number(data.predicted)
+            );
+
+
+        if (!Number.isFinite(predictedTotal)) {
+
+            throw new Error(
+                "Invalid predicted debris value"
+            );
+        }
+
+
+        // Calculate additional debris
+        const additionalDebris =
+            Math.max(
+                0,
+                predictedTotal - liveDebrisCount
+            );
+
+
         console.log(
-            "Prediction:",
-            year,
-            data.predicted
+            "=============================="
         );
+
+        console.log(
+            "Prediction year:",
+            year
+        );
+
+        console.log(
+            "Live debris:",
+            liveDebrisCount
+        );
+
+        console.log(
+            "Predicted total:",
+            predictedTotal
+        );
+
+        console.log(
+            "Additional predicted:",
+            additionalDebris
+        );
+
+        console.log(
+            "=============================="
+        );
+
 
         // Remove previous green prediction
         if (predictedDebrisPoints) {
@@ -94,26 +206,41 @@ async function loadPredictedDebris(year) {
             predictedDebrisPoints = null;
         }
 
-        // Create new green prediction
+
+        // IMPORTANT:
+        // debrisRenderer expects:
+        // createPredictedDebris(scene, predictedTotal, liveCount)
+        //
+        // DO NOT pass additionalDebris here.
         predictedDebrisPoints =
             createPredictedDebris(
                 scene,
-                data.predicted,
+                predictedTotal,
                 liveDebrisCount
             );
 
+
+        // Update prediction panel
         const predictionDisplay =
             document.getElementById(
                 "predictionDisplay"
             );
 
+
         if (predictionDisplay) {
 
             predictionDisplay.innerHTML = `
-                Predicted debris:
-                ${Number(data.predicted).toLocaleString()}
+                Live debris:
+                ${liveDebrisCount.toLocaleString()}<br>
+
+                Additional predicted:
+                ${additionalDebris.toLocaleString()}<br>
+
+                Future total:
+                ${predictedTotal.toLocaleString()}
             `;
         }
+
 
     } catch (error) {
 
@@ -124,93 +251,173 @@ async function loadPredictedDebris(year) {
     }
 }
 
-// Initial load
+
+// =====================================================
+// INITIAL LOAD
+// =====================================================
+
 await loadDebris();
 
-// Refresh every hour
-setInterval(loadDebris, 60 * 60 * 1000);
+
+// =====================================================
+// REFRESH LIVE DATA EVERY HOUR
+// =====================================================
+
+setInterval(
+    loadDebris,
+    60 * 60 * 1000
+);
+
+
+// =====================================================
+// YEAR SLIDER
+// =====================================================
 
 const yearSlider =
-    document.getElementById("yearSlider");
+    document.getElementById(
+        "yearSlider"
+    );
+
 
 const yearValue =
-    document.getElementById("yearValue");
+    document.getElementById(
+        "yearValue"
+    );
 
-const predictionYears = [2026, 2030, 2035, 2040, 2045];
+
+const predictionDisplay =
+    document.getElementById(
+        "predictionDisplay"
+    );
+
+
+const predictionYears = [
+    2026,
+    2030,
+    2035,
+    2040,
+    2045
+];
+
 
 if (yearSlider) {
 
-    // Slider positions: 0, 1, 2, 3, 4
     yearSlider.min = 0;
+
     yearSlider.max = 4;
+
     yearSlider.step = 1;
+
     yearSlider.value = 0;
 
-    yearValue.textContent = "2026";
 
-    document.getElementById(
-        "predictionDisplay"
-    ).textContent = "LIVE DEBRIS";
+    yearValue.textContent =
+        "2026";
 
 
-    yearSlider.addEventListener("input", async () => {
-
-        // Convert slider position → actual year
-        const index = Number(yearSlider.value);
-        const year = predictionYears[index];
-
-        yearValue.textContent = year;
+    predictionDisplay.innerHTML = `
+        Live debris:
+        ${liveDebrisCount.toLocaleString()}
+    `;
 
 
-        // =========================
-        // 2026 = LIVE DEBRIS
-        // =========================
+    yearSlider.addEventListener(
+        "input",
+        async () => {
 
-        if (year === 2026) {
+            const index =
+                Number(
+                    yearSlider.value
+                );
 
-            if (predictedDebrisPoints) {
 
-                scene.remove(predictedDebrisPoints);
+            const year =
+                predictionYears[index];
 
-                predictedDebrisPoints.geometry.dispose();
-                predictedDebrisPoints.material.dispose();
 
-                predictedDebrisPoints = null;
+            yearValue.textContent =
+                year;
+
+
+            // =========================================
+            // 2026 = LIVE ONLY
+            // =========================================
+
+            if (year === 2026) {
+
+                if (predictedDebrisPoints) {
+
+                    scene.remove(
+                        predictedDebrisPoints
+                    );
+
+                    predictedDebrisPoints.geometry.dispose();
+
+                    predictedDebrisPoints.material.dispose();
+
+                    predictedDebrisPoints = null;
+                }
+
+
+                predictionDisplay.innerHTML = `
+                    Live debris:
+                    ${liveDebrisCount.toLocaleString()}
+                `;
+
+                return;
             }
 
-            document.getElementById(
-                "predictionDisplay"
-            ).textContent = "LIVE DEBRIS";
 
-            return;
+            // =========================================
+            // 2030–2045 = FUTURE PREDICTION
+            // =========================================
+
+            await loadPredictedDebris(
+                year
+            );
         }
-
-
-        // =========================
-        // 2030–2045 = PREDICTION
-        // =========================
-
-        await loadPredictedDebris(year);
-    });
+    );
 }
 
 
-// FIX: resize Three.js when browser window changes
-window.addEventListener("resize", () => {
-    const camera = scene.userData.camera;
-    const renderer = scene.userData.renderer;
+// =====================================================
+// RESPONSIVE THREE.JS
+// =====================================================
 
-    if (camera && renderer) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+window.addEventListener(
+    "resize",
+    () => {
 
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
+        const camera =
+            scene.userData.camera;
 
-        renderer.setPixelRatio(
-            Math.min(window.devicePixelRatio, 2)
-        );
+
+        const renderer =
+            scene.userData.renderer;
+
+
+        if (camera && renderer) {
+
+            camera.aspect =
+                window.innerWidth /
+                window.innerHeight;
+
+
+            camera.updateProjectionMatrix();
+
+
+            renderer.setSize(
+                window.innerWidth,
+                window.innerHeight
+            );
+
+
+            renderer.setPixelRatio(
+                Math.min(
+                    window.devicePixelRatio,
+                    2
+                )
+            );
+        }
     }
-});
+);

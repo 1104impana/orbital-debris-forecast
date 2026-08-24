@@ -57,12 +57,17 @@ export function createDebris(scene, debris) {
         )
     );
 
+    // =========================
+    // LIVE DEBRIS = RED
+    // =========================
+
     const material = new THREE.PointsMaterial({
         color: 0xff3333,
         size: 0.015,
         transparent: true,
         opacity: 0.85,
-        sizeAttenuation: true
+        sizeAttenuation: true,
+        depthWrite: true
     });
 
     const points = new THREE.Points(
@@ -70,21 +75,22 @@ export function createDebris(scene, debris) {
         material
     );
 
+    points.renderOrder = 1;
+
     scene.add(points);
 
     return points;
 }
 
+
 export function createPredictedDebris(scene, predictedTotal, liveCount) {
 
     const positions = [];
 
-    // Earth radius = 1
+    // Same general LEO region as live debris
     const MIN_RADIUS = 1 + (160 / 6371);
     const MAX_RADIUS = 1 + (1000 / 6371);
 
-    // Predicted_Debris is assumed to be TOTAL population.
-    // Therefore only render the additional debris.
     const additionalDebris = Math.max(
         0,
         Math.round(predictedTotal - liveCount)
@@ -92,31 +98,50 @@ export function createPredictedDebris(scene, predictedTotal, liveCount) {
 
     for (let i = 0; i < additionalDebris; i++) {
 
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
+        // Random orbital inclination
+        const inclination =
+            (Math.random() - 0.5) * Math.PI;
 
+        // Position along orbital path
+        const angle =
+            Math.random() * Math.PI * 2;
+
+        // Random altitude
         const radius =
             MIN_RADIUS +
-            Math.random() * (MAX_RADIUS - MIN_RADIUS);
+            Math.random() *
+            (MAX_RADIUS - MIN_RADIUS);
 
-        const x =
+        // Orbital position
+        let x =
             radius *
-            Math.sin(phi) *
-            Math.cos(theta);
+            Math.cos(angle);
 
-        const y =
+        let y =
             radius *
-            Math.sin(phi) *
-            Math.sin(theta);
+            Math.sin(angle);
 
-        const z =
-            radius *
-            Math.cos(phi);
+        let z = 0;
 
-        positions.push(x, y, z);
+        // Rotate orbital plane by inclination
+        const rotatedY =
+            y * Math.cos(inclination);
+
+        const rotatedZ =
+            y * Math.sin(inclination);
+
+        y = rotatedY;
+        z = rotatedZ;
+
+        positions.push(
+            x,
+            y,
+            z
+        );
     }
 
-    const geometry = new THREE.BufferGeometry();
+    const geometry =
+        new THREE.BufferGeometry();
 
     geometry.setAttribute(
         "position",
@@ -126,18 +151,31 @@ export function createPredictedDebris(scene, predictedTotal, liveCount) {
         )
     );
 
-    const material = new THREE.PointsMaterial({
-        color: 0x00ff66,
-        size: 0.012,
-        transparent: true,
-        opacity: 0.8,
-        sizeAttenuation: true
-    });
+    const material =
+        new THREE.PointsMaterial({
 
-    const points = new THREE.Points(
-        geometry,
-        material
-    );
+            color: 0x00ff66,
+
+            size: 0.015,
+
+            transparent: true,
+
+            opacity: 1.0,
+
+            sizeAttenuation: true,
+
+            depthTest: true,
+
+            depthWrite: false
+        });
+
+    const points =
+        new THREE.Points(
+            geometry,
+            material
+        );
+
+    points.renderOrder = 0;
 
     scene.add(points);
 
