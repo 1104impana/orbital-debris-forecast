@@ -6,7 +6,10 @@ import stars from "./earth/stars";
 import "./earth/lights";
 import animate from "./animate";
 
-import { createDebris } from "./debris/debrisRenderer";
+import {
+    createDebris,
+    createPredictedDebris
+} from "./debris/debrisRenderer";
 import { getLiveDebris } from "./debris/liveDebris";
 
 scene.add(earth);
@@ -15,6 +18,7 @@ scene.add(earth);
 animate();
 
 let debrisPoints = null;
+let predictedDebrisPoints = null;
 
 async function loadDebris() {
 
@@ -37,7 +41,7 @@ async function loadDebris() {
 
     // Update status panel
     document.getElementById("timestamp").innerHTML = `
-        <b>LIVE ORBITAL DEBRIS</b><br><br>
+        <b>LIVE ORBITAL DEBRIS</b><br>
 
         Source : SPACE-TRACK<br>
 
@@ -51,17 +55,140 @@ async function loadDebris() {
     `;
 }
 
+async function loadPredictedDebris(year) {
+
+    try {
+
+        const response = await fetch(
+            `http://127.0.0.1:8000/future-debris?year=${year}`
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Prediction API error: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+
+        console.log(
+            "Prediction:",
+            year,
+            data.predicted
+        );
+
+        // Remove previous green prediction
+        if (predictedDebrisPoints) {
+
+            scene.remove(
+                predictedDebrisPoints
+            );
+
+            predictedDebrisPoints.geometry.dispose();
+
+            predictedDebrisPoints.material.dispose();
+
+            predictedDebrisPoints = null;
+        }
+
+        // Create new green prediction
+        predictedDebrisPoints =
+            createPredictedDebris(
+                scene,
+                data.predicted
+            );
+
+        const predictionDisplay =
+            document.getElementById(
+                "predictionDisplay"
+            );
+
+        if (predictionDisplay) {
+
+            predictionDisplay.innerHTML = `
+                Predicted debris:
+                ${Number(data.predicted).toLocaleString()}
+            `;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Prediction error:",
+            error
+        );
+    }
+}
+
 // Initial load
 await loadDebris();
 
 // Refresh every hour
 setInterval(loadDebris, 60 * 60 * 1000);
 
-// Initial load
-await loadDebris();
+const yearSlider =
+    document.getElementById("yearSlider");
 
-// Refresh every hour
-setInterval(loadDebris, 60 * 60 * 1000);
+const yearValue =
+    document.getElementById("yearValue");
+
+const predictionYears = [2026, 2030, 2035, 2040, 2045];
+
+if (yearSlider) {
+
+    // Slider positions: 0, 1, 2, 3, 4
+    yearSlider.min = 0;
+    yearSlider.max = 4;
+    yearSlider.step = 1;
+    yearSlider.value = 0;
+
+    yearValue.textContent = "2026";
+
+    document.getElementById(
+        "predictionDisplay"
+    ).textContent = "LIVE DEBRIS";
+
+
+    yearSlider.addEventListener("input", async () => {
+
+        // Convert slider position → actual year
+        const index = Number(yearSlider.value);
+        const year = predictionYears[index];
+
+        yearValue.textContent = year;
+
+
+        // =========================
+        // 2026 = LIVE DEBRIS
+        // =========================
+
+        if (year === 2026) {
+
+            if (predictedDebrisPoints) {
+
+                scene.remove(predictedDebrisPoints);
+
+                predictedDebrisPoints.geometry.dispose();
+                predictedDebrisPoints.material.dispose();
+
+                predictedDebrisPoints = null;
+            }
+
+            document.getElementById(
+                "predictionDisplay"
+            ).textContent = "LIVE DEBRIS";
+
+            return;
+        }
+
+
+        // =========================
+        // 2030–2045 = PREDICTION
+        // =========================
+
+        await loadPredictedDebris(year);
+    });
+}
 
 
 // FIX: resize Three.js when browser window changes

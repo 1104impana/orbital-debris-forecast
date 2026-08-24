@@ -2,18 +2,111 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon.svg"
+    />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Space Debris Visualization</title>
   </head>
+
   <body>
+
     <div id="app"></div>
 
-    <div id = "timestamp">
+    <!-- Live debris information -->
+    <div id="timestamp">
       updating...
     </div>
 
-   
-    <script type="module" src="/src/main.js"></script>
+
+    <!-- Future debris prediction panel -->
+    <div id="predictionPanel">
+
+      <h3>FUTURE ESTIMATED DEBRIS</h3>
+      <br>
+
+      <div>
+        Year:
+        <span id="yearValue">2026</span>
+      </div>
+
+
+      <!-- Timeline -->
+      <div class="year-timeline">
+
+        <!-- Year labels -->
+        <div class="year-labels">
+          <span>2026</span>
+          <span>2030</span>
+          <span>2035</span>
+          <span>2040</span>
+          <span>2045</span>
+        </div>
+
+
+        <!-- Slider -->
+        <div class="slider-wrapper">
+
+          <input
+            type="range"
+            id="yearSlider"
+            min="0"
+            max="4"
+            step="1"
+            value="0"
+          />
+
+
+          <!-- Milestone dots -->
+          <div class="slider-dots">
+
+            <span
+              data-year="2026"
+            ></span>
+
+            <span
+              data-year="2030"
+            ></span>
+
+            <span
+              data-year="2035"
+            ></span>
+
+            <span
+              data-year="2040"
+            ></span>
+
+            <span
+              data-year="2045"
+            ></span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Prediction result -->
+      <div id="predictionDisplay">
+        LIVE DEBRIS
+      </div>
+
+    </div>
+
+
+    <script
+      type="module"
+      src="/src/main.js"
+    ></script>
+
   </body>
 </html>
