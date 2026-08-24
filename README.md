@@ -8,7 +8,10 @@ As the number of objects in Earth's orbit continues to grow, so does the risk of
 
 Orbital Debris Forecast combines real-time orbital mechanics with machine learning to visualize the current distribution of orbital debris and predict future debris population and concentration.
 
-<img width="975" height="481" alt="image" src="https://github.com/user-attachments/assets/a4869892-2910-42a9-b205-d7ab07980afe" />
+<img width="975" height="431" alt="image" src="https://github.com/user-attachments/assets/1f941b6a-beb2-49d0-adbf-424b20b27688" />
+
+<img width="975" height="430" alt="image" src="https://github.com/user-attachments/assets/6500cded-b263-41c8-83b4-c839cb928380" />
+
 
 ---
 
