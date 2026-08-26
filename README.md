@@ -13,10 +13,10 @@ Orbital Debris Forecast combines real-time orbital mechanics with machine learni
 
 <img width="975" height="430" alt="image" src="https://github.com/user-attachments/assets/10ed2125-cd8f-4597-badf-b759c26f5f97" />
 
+> **Note:** Red marks show live tracked debris, while green marks represent predicted additional debris. Together, they indicate the projected total debris for each year.
 
 
 
----
 
 ## Features
 
@@ -25,9 +25,9 @@ Orbital Debris Forecast combines real-time orbital mechanics with machine learni
 - Live orbital data retrieved from Space-Track
 - Real-time orbital propagation using the SGP4 model (`satellite.js`)
 - FastAPI backend with hourly data caching
-- Machine Learning-based debris forecasting *(In Progress)*
+- Machine Learning-based debris forecasting 
 
----
+
 
 ## Tech Stack
 
@@ -40,19 +40,16 @@ Orbital Debris Forecast combines real-time orbital mechanics with machine learni
 - Python
 - FastAPI
 
-### Data Source
-- Space-Track GP API
-
 ### Orbital Propagation
 - satellite.js (SGP4)
 
-### Machine Learning *(Planned)*
+### Machine Learning 
 - Scikit-learn
 - NumPy
 - Pandas
 - Matplotlib
+- Ridge Rigression model
 
----
 
 ## Project Workflow
 
@@ -82,37 +79,52 @@ Orbital Debris Forecast combines real-time orbital mechanics with machine learni
    Future Debris Distribution Prediction
 ```
 
----
-
-## Current Progress
-
-- Space-Track authentication implemented
-- Live GP orbital data retrieval
-- Intelligent hourly backend caching
-- Real-time orbital propagation using SGP4
-- Interactive 3D debris visualization
-- Visualization of 12,000+ tracked orbital debris objects
-
----
-
-## Planned Features
-
-- LEO, MEO and GEO orbit filters
-- Search by NORAD ID or object name
-- Debris information panel
-- Orbital density heatmaps
-- Machine learning-based debris clustering
-- Future debris population forecasting
-- Collision risk estimation
-- Interactive analytics dashboard
-
----
-
-## Data Source
+## Data Source for live debris visualization
 
 This project uses the **Space-Track GP (General Perturbations)** dataset containing currently tracked, non-decayed orbital debris. Orbital data is cached by the backend and refreshed periodically to minimize unnecessary API requests while keeping the visualization up to date.
 
----
+## Dataset for ML
+
+Source: NASA Orbital Debris Program Office (ODPO)
+
+The project uses orbital debris and satellite tracking data sourced from **NASA**. The dataset contains historical orbital information for tracked objects in Low Earth Orbit (LEO), which is processed to analyze debris population trends and forecast future growth.
+
+
+## Model & Forecasting
+
+The project uses a machine-learning time-series forecasting pipeline to estimate the future population of tracked Low Earth Orbit (LEO) debris.
+
+### Approach
+
+1. Historical orbital-debris observations are aggregated by year.
+2. Temporal features are extracted from the historical trend.
+3. The forecasting model is trained on the historical data.
+4. The model predicts future debris population for upcoming years.
+5. Predictions are compared against historical observations to evaluate whether the model captures the underlying growth trend.
+
+### Model Performance
+
+The model was evaluated using a held-out portion of the historical data.
+
+| Metric | Value |
+|---|---:|
+| MAE | 78.70|
+| RMSE | 179.32 |
+| R² Score | 0.96 |
+
+### Actual vs Predicted
+
+The following graph compares the observed debris population with the model's predictions. The close alignment between the actual and predicted values demonstrates how well the model captures the historical growth pattern.
+
+<img width="869" height="469" alt="image" src="https://github.com/user-attachments/assets/80956ddb-881f-4d94-96c3-bfb2ed0b9962" />
+
+
+### Future Forecast
+
+After evaluation, the model was retrained using the available historical observations and used to forecast the future LEO debris population.
+
+<img width="1390" height="590" alt="image" src="https://github.com/user-attachments/assets/7286bfc8-ba32-4a6c-8d1e-1d5d7364bb3d" />
+
 
 ## Project Goal
 
@@ -123,13 +135,16 @@ The primary objective of this project is to combine orbital mechanics with Artif
 - Forecast future debris growth using Machine Learning.
 - Support space situational awareness through data-driven analysis.
 
----
 
 ## Future Scope
 
 The long-term goal is to develop predictive models capable of estimating future debris population, identifying high-risk orbital regions, and supporting sustainable space traffic management through machine learning and data analytics.
 
----
+
+
+> Note: The live visualization displays ~12,000 debris objects. ~4,000 are excluded due to unavailable positional data.
+> The forecast uses the available tracked debris population and estimates additional debris growth over time.
+
 
 ## Author
 
