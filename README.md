@@ -146,6 +146,29 @@ The long-term goal is to develop predictive models capable of estimating future 
 > The forecast uses the available tracked debris population and estimates additional debris growth over time.
 
 
+## Run Locally
+
+```bash
+git clone https://github.com/1104impana/orbital-debris-forecast.git
+cd frontend
+npm install
+npm run dev
+```
+
+In a second terminal:
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Open **[http://localhost:5173](http://localhost:5173)** in your browser.
+
+
+
 ## Author
 
 **Impana T**
